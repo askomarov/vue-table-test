@@ -5,26 +5,66 @@ const ToFilterCondition = ref('contains')
 const ToFilterValue = ref('')
 const ascending = ref(true);
 const sortColumn = ref('count');
+const filteredData = ref([]);
 const dataJson = ref([
   {
     "date": "15.10.2022",
     "count": 1,
     "name": 'Artem',
-    "distance": 150
+    'distance': '150'
   },
   {
     "date": "17.10.2022",
     "count": 2,
     "name": 'Milosh',
-    "distance": 200
+    'distance': '200'
   },
   {
     "date": "19.10.2022",
     "count": 3,
     "name": 'Nickolas',
-    "distance": 250
+    'distance': '250'
   },
 ])
+const getFilteredData = (param, condition, value) => {
+  console.log(param, condition, value);
+  filteredData.value = dataJson.value.filter((item) => {
+
+    if (condition === 'equal') {
+      console.log(item[param] === value);
+      return item[param] === value
+    } else if (condition === 'more') {
+      console.log(condition);
+      return item[param] > value
+    } else if (condition === 'less') {
+      console.log(condition);
+      return item[param] < value
+    } else if (condition === 'contains') {
+      console.log(item[param].toString().toLowerCase());
+      console.log(value.toString().toLowerCase());
+
+      return item[param].toString().toLowerCase().includes(value.toString().toLowerCase())
+    }
+    // console.log(item[param] === value);
+    // switch (condition) {
+    //   case 'equal':
+    //     return item[param] === value
+
+    //   case 'more':
+    //     return item[param] > value
+
+    //   case 'less':
+    //     return item[param] < value
+
+    //   case 'contains':
+    //     return true
+    //   default:
+    //     break;
+    // }
+  })
+  return filteredData;
+}
+
 
 const sortTableColumn = (col) => {
   if (sortColumn.value === col) {
@@ -57,6 +97,15 @@ const colData = computed(() => {
     <h1 class="text-3xl font-bold underline mb-3">
       My table
     </h1>
+    <button @click="getFilteredData(`${ToFilterColumn}`, `${ToFilterCondition}`, `${ToFilterValue}`)">Filter
+      button</button>
+    <p>ToFilterColumn: {{ToFilterColumn}}</p>
+    <p>ToFilterCondition: {{ToFilterCondition}}</p>
+    <p>ToFilterValue: {{ToFilterValue}}</p>
+    <pre>
+      {{filteredData}}
+    </pre>
+
     <form class="flex items-center justify-center gap-3 px-3 mb-3">
       <div class="input-wrap">
         <label for="column">column to filter</label>
@@ -142,16 +191,5 @@ const colData = computed(() => {
 
 .arrow.arrow--down {
   transform: rotate(180deg)
-}
-
-.datarow-enter-active,
-.datarow-leave-active {
-  transition: all 0.5s ease;
-}
-
-.datarow-enter-from,
-.datarow-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
 }
 </style>
