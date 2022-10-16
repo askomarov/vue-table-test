@@ -1,78 +1,48 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeMount } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useStore } from 'vuex'
 import VPagination from "../src/components/VPagination.vue";
-import data from '../src/assets/data.js';
+// import data from '../src/assets/data.js';
 
+const store = useStore()
+const data = store.state.data;
 const pageRange = ref(3);
 const marginPages = ref(3);
-const page = ref(1);
-const from = ref(0);
-const to = ref(1);
-const dataOnPage = 5;
-const totalPages = ref(1)
+const currentPage = ref(store.state.currentPage)
+const totalPages = computed(() => store.getters.getTotalPages)
 
+const dataToRenderStore = computed(() => store.getters.getDataToRender)
 
-const isFilterActive = ref(false)
 const ToFilterColumn = ref('name')
 const ToFilterCondition = ref('contains')
 const ToFilterValue = ref('')
-const ascending = ref(true);
-const sortColumn = ref('count');
+const isAscending = computed(() => store.getters.getAscendingValue);
+const sortedColumn = computed(() => store.getters.getSortedColumnName);
 const colData = Object.keys(data[0])
-const dataToRender = ref([...data]);
 
-const getdataToRender = (param, condition, value) => {
-  dataToRender.value = data.filter((item) => {
-    if (condition === 'equal') {
-      return item[param] === value
-    } else if (condition === 'more') {
-      return item[param] > value
-    } else if (condition === 'less') {
-      return item[param] < value
-    } else if (condition === 'contains') {
-      return item[param].toString().toLowerCase().includes(value.toString().toLowerCase())
-    }
-  })
-  isFilterActive.value = true;
-  return dataToRender;
+const onSubmitFilterData = (param, condition, value) => {
+  const payload = { param, condition, value }
+  store.dispatch('filterData', payload)
 }
 
-const getTotalPages = computed(() => {
-  if (data.length === 0) {
-    return totalPages.value = 1;
-  } else {
-    return totalPages.value = Math.ceil(dataToRender.value.length / dataOnPage);
-  }
-})
-
-const getDataToRender = computed(() => {
-  let from = page.value * dataOnPage - dataOnPage;
-  let to = page.value * dataOnPage;
-  return dataToRender.value.slice(from, to);
-})
-
-const sortTableColumn = (col) => {
-  if (sortColumn.value === col) {
-    ascending.value = !ascending.value;
-  } else {
-    sortColumn.value = col;
-    ascending.value = true;
-  }
-
-  dataToRender.value.sort(function (a, b) {
-    if (a[col] > b[col]) {
-      return ascending.value ? 1 : -1
-    } else if (a[col] < b[col]) {
-      return ascending.value ? -1 : 1
-    }
-    return 0;
-  })
-};
-
+const onSortButtonClick = (col) => {
+  store.dispatch('sortTableColumn', col)
+}
 
 const onPaginationPageClick = () => {
-  console.log(page.value);
+  store.dispatch('setCurrentPage', currentPage.value)
 }
+// page.value = computed(() => store.getters.getCurrentPage)
+onMounted(() => {
+  currentPage.value = store.state.currentPage
+})
+watch(ToFilterValue, (newValue, oldValue) => {
+  if (newValue) {
+    currentPage.value = store.getters.getCurrentPage;
+    console.log('store: ' + store.getters.getCurrentPage);
+    console.log('currentPage.value: ' + currentPage.value);
+  }
+})
 </script>
 
 <template>
@@ -82,7 +52,7 @@ const onPaginationPageClick = () => {
     </h1>
     <!--  -->
     <form class="flex items-center justify-center gap-3 px-3 mb-3"
-      @submit.prevent="getdataToRender(`${ToFilterColumn}`, `${ToFilterCondition}`, `${ToFilterValue}`)">
+      @submit.prevent="onSubmitFilterData(`${ToFilterColumn}`, `${ToFilterCondition}`, `${ToFilterValue}`)">
       <div class="input-wrap">
         <label for="column">column to filter</label>
         <select name="column" v-model="ToFilterColumn" id="column" class="input">
@@ -114,15 +84,15 @@ const onPaginationPageClick = () => {
           <tr>
             <th v-for="col,i in colData" :key="i">
               <button v-if="col === 'date'">{{col.toUpperCase()}}</button>
-              <button class="button" v-else @click="sortTableColumn(col)">{{col.toUpperCase()}}
-                <span v-if="sortColumn === col"
-                  :class="['arrow', ascending && sortColumn === col ? '' : 'arrow--down']">⬆</span>
+              <button class="button" v-else @click="onSortButtonClick(col)">{{col.toUpperCase()}}
+                <span v-if="sortedColumn === col"
+                  :class="['arrow', isAscending && sortedColumn === col ? '' : 'arrow--down']">⬆</span>
               </button>
             </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in getDataToRender" :key="item.id">
+          <tr v-for="item in dataToRenderStore" :key="item.id">
             <td v-for="col,i in colData" :key="i">{{item[col]}}</td>
           </tr>
         </tbody>
@@ -131,7 +101,7 @@ const onPaginationPageClick = () => {
     <!--  -->
     <div>
       <p>Pagination</p>
-      <VPagination v-model="page" :page-count="totalPages" :hide-prev-next="true" :page-range="pageRange"
+      <VPagination v-model="currentPage" :page-count="totalPages" :hide-prev-next="true" :page-range="pageRange"
         :margin-pages="marginPages" :click-handler="onPaginationPageClick"
         :disabled-class="'rt-pagination__btn--disabled'" :page-link-class="'rt-pagination__btn'"
         :prev-link-class="'rt-pagination__btn rt-pagination__btn--prev'"
