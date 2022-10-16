@@ -1,70 +1,55 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeMount } from 'vue';
+import VPagination from "../src/components/VPagination.vue";
+import data from '../src/assets/data.js';
+
+const pageRange = ref(3);
+const marginPages = ref(3);
+const page = ref(1);
+const from = ref(0);
+const to = ref(1);
+const dataOnPage = 5;
+const totalPages = ref(1)
+
+
+const isFilterActive = ref(false)
 const ToFilterColumn = ref('name')
 const ToFilterCondition = ref('contains')
 const ToFilterValue = ref('')
 const ascending = ref(true);
 const sortColumn = ref('count');
-const filteredData = ref([]);
-const dataJson = ref([
-  {
-    "date": "15.10.2022",
-    "count": 1,
-    "name": 'Artem',
-    'distance': '150'
-  },
-  {
-    "date": "17.10.2022",
-    "count": 2,
-    "name": 'Milosh',
-    'distance': '200'
-  },
-  {
-    "date": "19.10.2022",
-    "count": 3,
-    "name": 'Nickolas',
-    'distance': '250'
-  },
-])
-const getFilteredData = (param, condition, value) => {
-  console.log(param, condition, value);
-  filteredData.value = dataJson.value.filter((item) => {
+const colData = Object.keys(data[0])
+const dataToRender = ref([...data]);
 
+const getdataToRender = (param, condition, value) => {
+  dataToRender.value = data.filter((item) => {
     if (condition === 'equal') {
-      console.log(item[param] === value);
       return item[param] === value
     } else if (condition === 'more') {
-      console.log(condition);
       return item[param] > value
     } else if (condition === 'less') {
-      console.log(condition);
       return item[param] < value
     } else if (condition === 'contains') {
-      console.log(item[param].toString().toLowerCase());
-      console.log(value.toString().toLowerCase());
-
       return item[param].toString().toLowerCase().includes(value.toString().toLowerCase())
     }
-    // console.log(item[param] === value);
-    // switch (condition) {
-    //   case 'equal':
-    //     return item[param] === value
-
-    //   case 'more':
-    //     return item[param] > value
-
-    //   case 'less':
-    //     return item[param] < value
-
-    //   case 'contains':
-    //     return true
-    //   default:
-    //     break;
-    // }
   })
-  return filteredData;
+  isFilterActive.value = true;
+  return dataToRender;
 }
 
+const getTotalPages = computed(() => {
+  if (data.length === 0) {
+    return totalPages.value = 1;
+  } else {
+    return totalPages.value = Math.ceil(dataToRender.value.length / dataOnPage);
+  }
+})
+
+const getDataToRender = computed(() => {
+  let from = page.value * dataOnPage - dataOnPage;
+  let to = page.value * dataOnPage;
+  return dataToRender.value.slice(from, to);
+})
 
 const sortTableColumn = (col) => {
   if (sortColumn.value === col) {
@@ -74,7 +59,7 @@ const sortTableColumn = (col) => {
     ascending.value = true;
   }
 
-  dataJson.value.sort(function (a, b) {
+  dataToRender.value.sort(function (a, b) {
     if (a[col] > b[col]) {
       return ascending.value ? 1 : -1
     } else if (a[col] < b[col]) {
@@ -84,12 +69,10 @@ const sortTableColumn = (col) => {
   })
 };
 
-const colData = computed(() => {
-  if (dataJson.value.length == 0) {
-    return [];
-  }
-  return Object.keys(dataJson.value[0])
-})
+
+const onPaginationPageClick = () => {
+  console.log(page.value);
+}
 </script>
 
 <template>
@@ -97,16 +80,9 @@ const colData = computed(() => {
     <h1 class="text-3xl font-bold underline mb-3">
       My table
     </h1>
-    <button @click="getFilteredData(`${ToFilterColumn}`, `${ToFilterCondition}`, `${ToFilterValue}`)">Filter
-      button</button>
-    <p>ToFilterColumn: {{ToFilterColumn}}</p>
-    <p>ToFilterCondition: {{ToFilterCondition}}</p>
-    <p>ToFilterValue: {{ToFilterValue}}</p>
-    <pre>
-      {{filteredData}}
-    </pre>
-
-    <form class="flex items-center justify-center gap-3 px-3 mb-3">
+    <!--  -->
+    <form class="flex items-center justify-center gap-3 px-3 mb-3"
+      @submit.prevent="getdataToRender(`${ToFilterColumn}`, `${ToFilterCondition}`, `${ToFilterValue}`)">
       <div class="input-wrap">
         <label for="column">column to filter</label>
         <select name="column" v-model="ToFilterColumn" id="column" class="input">
@@ -131,6 +107,7 @@ const colData = computed(() => {
           placeholder="input value for condition">
       </div>
     </form>
+    <!--  -->
     <div class="mb-4">
       <table class="w-full max-w-full">
         <thead>
@@ -145,14 +122,28 @@ const colData = computed(() => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in dataJson" :key="item.id">
+          <tr v-for="item in getDataToRender" :key="item.id">
             <td v-for="col,i in colData" :key="i">{{item[col]}}</td>
           </tr>
         </tbody>
       </table>
     </div>
+    <!--  -->
     <div>
       <p>Pagination</p>
+      <VPagination v-model="page" :page-count="totalPages" :hide-prev-next="true" :page-range="pageRange"
+        :margin-pages="marginPages" :click-handler="onPaginationPageClick"
+        :disabled-class="'rt-pagination__btn--disabled'" :page-link-class="'rt-pagination__btn'"
+        :prev-link-class="'rt-pagination__btn rt-pagination__btn--prev'"
+        :next-link-class="'rt-pagination__btn rt-pagination__btn--next'" :active-class="'rt-pagination__btn--current'">
+        <template #iconarrow>
+          <svg width="7" height="11" viewBox="0 0 12 18" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd"
+              d="M1.31585 0.583588C1.90246 -0.00136659 2.85221 -1.94013e-05 3.43716 0.586597L10.7705 7.94076C11.3543 8.5262 11.3543 9.47363 10.7705 10.0591L3.43716 17.4132C2.85221 17.9999 1.90246 18.0012 1.31585 17.4162C0.729229 16.8313 0.727881 15.8815 1.31284 15.2949L7.59001 8.99992L1.31284 2.70491C0.727881 2.11829 0.729229 1.16854 1.31585 0.583588Z"
+              fill="currentColor" />
+          </svg>
+        </template>
+      </VPagination>
     </div>
   </div>
 </template>
