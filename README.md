@@ -1,5 +1,5 @@
-##[Rerository](https://github.com/askomarov/vue-table-test) on github
-##[Demo](https://askomarov-welbex-table.netlify.app/) netlify
+## [Rerository](https://github.com/askomarov/vue-table-test) on github
+## [Demo](https://askomarov-welbex-table.netlify.app/) netlify
 
 ### Vue 3 + Vite
 
