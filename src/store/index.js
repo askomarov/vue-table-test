@@ -27,7 +27,10 @@ export default createStore({
       return state.isAscending;
     },
     getCurrentPage(state) {
-      if (state.dataToRender.length <= state.dataOnPage) {
+      if (
+        state.dataToRender.length <= state.dataOnPage ||
+        state.currentPage > state.totalPages
+      ) {
         return (state.currentPage = 1);
       }
       return state.currentPage;

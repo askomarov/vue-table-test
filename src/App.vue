@@ -21,6 +21,7 @@ const tableCells = computed(() => store.getters.getTableHeaders);
 const isLoading = computed(() => store.getters.getIsLoading);
 
 const onSubmitFilterData = (param, condition, value) => {
+  currentPage.value = store.state.currentPage;
   const payload = { param, condition, value };
   store.dispatch("filterData", payload);
 };
@@ -49,8 +50,11 @@ watch(dataToRenderStore, (newValue) => {
   <div>
     <header class="flex justify-between items-center mb-4 gap-2">
       <h1 class="text-base lg:text-3xl font-bold underline">
-        <a href="https://github.com/askomarov/vue-table-test" target="_blank"
-          class="mb-3 flex flex-col items-start text-blue-800">
+        <a
+          href="https://github.com/askomarov/vue-table-test"
+          target="_blank"
+          class="mb-3 flex flex-col items-start text-blue-800"
+        >
           My table
           <small class="text-sm">link to github</small>
         </a>
@@ -60,13 +64,16 @@ watch(dataToRenderStore, (newValue) => {
       </button>
     </header>
     <!--  -->
-    <form class="flex justify-center flex-wrap gap-3 px-3 mb-3" @submit.prevent="
-      onSubmitFilterData(
-        `${ToFilterColumn}`,
-        `${ToFilterCondition}`,
-        `${ToFilterValue}`
-      )
-    ">
+    <form
+      class="flex justify-center flex-wrap gap-3 px-3 mb-3"
+      @submit.prevent="
+        onSubmitFilterData(
+          `${ToFilterColumn}`,
+          `${ToFilterCondition}`,
+          `${ToFilterValue}`
+        )
+      "
+    >
       <div class="input-wrap">
         <label for="column">column to filter</label>
         <select name="column" v-model="ToFilterColumn" id="column" class="input">
@@ -77,8 +84,13 @@ watch(dataToRenderStore, (newValue) => {
       </div>
       <div class="input-wrap">
         <label for="filteringСondition">Choose filter condition</label>
-        <select name="filteringСondition" v-model="ToFilterCondition" id="filteringСondition" class="input"
-          placeholder="Choose condition">
+        <select
+          name="filteringСondition"
+          v-model="ToFilterCondition"
+          id="filteringСondition"
+          class="input"
+          placeholder="Choose condition"
+        >
           <option value="contains" selected="selected">this is contains</option>
           <option value="more">this is more than</option>
           <option value="less">this is less than</option>
@@ -87,10 +99,18 @@ watch(dataToRenderStore, (newValue) => {
       </div>
       <div class="input-wrap">
         <label for="filterValue">Input value</label>
-        <input class="input" id="filterValue" v-model="ToFilterValue" name="filterValue" type="text"
-          placeholder="input value for condition" />
+        <input
+          class="input"
+          id="filterValue"
+          v-model="ToFilterValue"
+          name="filterValue"
+          type="text"
+          placeholder="input value for condition"
+        />
       </div>
-      <button type="submit" class='flex-auto bg-fuchsia-200'>Submit or press 'Enter'</button>
+      <button type="submit" class="flex-auto bg-fuchsia-200">
+        Submit or press 'Enter'
+      </button>
     </form>
     <!--  -->
     <div class="mb-8 max-w-full overflow-x-auto">
@@ -103,20 +123,30 @@ watch(dataToRenderStore, (newValue) => {
           <tr>
             <th v-for="(col, i) in tableCells" :key="i">
               <!-- sorting by date is disabled -->
-              <button v-if="col === 'date'" disabled>{{ col.toUpperCase() }}</button>
+              <button v-if="col === 'date'" class="w-full" disabled>
+                {{ col.toUpperCase() }}
+              </button>
               <button class="button" v-else @click="onSortButtonClick(col)">
                 {{ col.toUpperCase() }}
-                <span v-if="sortedColumn === col" :class="[
-                  'arrow',
-                  isAscending && sortedColumn === col ? '' : 'arrow--down',
-                ]">⬆</span>
+                <span
+                  v-if="sortedColumn === col"
+                  :class="[
+                    'arrow',
+                    isAscending && sortedColumn === col ? '' : 'arrow--down',
+                  ]"
+                  >⬆</span
+                >
               </button>
             </th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="item in dataToRenderStore" :key="item.id">
-            <td v-for="(col, i) in tableCells" :key="i" :class="[sortedColumn === col ? 'active' : '']">
+            <td
+              v-for="(col, i) in tableCells"
+              :key="i"
+              :class="[sortedColumn === col ? 'active' : '']"
+            >
               {{ item[col] }}
             </td>
           </tr>
@@ -128,16 +158,27 @@ watch(dataToRenderStore, (newValue) => {
     </div>
     <!--  -->
     <div v-if="!isLoading">
-      <VPagination v-model="currentPage" :page-count="totalPages" :hide-prev-next="true" :page-range="pageRange"
-        :margin-pages="marginPages" :click-handler="onPaginationPageClick"
-        :disabled-class="'rt-pagination__btn--disabled'" :page-link-class="'rt-pagination__btn'"
+      <VPagination
+        v-model="currentPage"
+        :page-count="totalPages"
+        :hide-prev-next="true"
+        :page-range="pageRange"
+        :margin-pages="marginPages"
+        :click-handler="onPaginationPageClick"
+        :disabled-class="'rt-pagination__btn--disabled'"
+        :page-link-class="'rt-pagination__btn'"
         :prev-link-class="'rt-pagination__btn rt-pagination__btn--prev'"
-        :next-link-class="'rt-pagination__btn rt-pagination__btn--next'" :active-class="'rt-pagination__btn--current'">
+        :next-link-class="'rt-pagination__btn rt-pagination__btn--next'"
+        :active-class="'rt-pagination__btn--current'"
+      >
         <template #iconarrow>
           <svg width="7" height="11" viewBox="0 0 12 18" aria-hidden="true">
-            <path fill-rule="evenodd" clip-rule="evenodd"
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
               d="M1.31585 0.583588C1.90246 -0.00136659 2.85221 -1.94013e-05 3.43716 0.586597L10.7705 7.94076C11.3543 8.5262 11.3543 9.47363 10.7705 10.0591L3.43716 17.4132C2.85221 17.9999 1.90246 18.0012 1.31585 17.4162C0.729229 16.8313 0.727881 15.8815 1.31284 15.2949L7.59001 8.99992L1.31284 2.70491C0.727881 2.11829 0.729229 1.16854 1.31585 0.583588Z"
-              fill="currentColor" />
+              fill="currentColor"
+            />
           </svg>
         </template>
       </VPagination>
