@@ -60,7 +60,7 @@ watch(dataToRenderStore, (newValue) => {
       </button>
     </header>
     <!--  -->
-    <form class="flex items-center justify-center flex-wrap gap-3 px-3 mb-3" @submit.prevent="
+    <form class="flex justify-center flex-wrap gap-3 px-3 mb-3" @submit.prevent="
       onSubmitFilterData(
         `${ToFilterColumn}`,
         `${ToFilterCondition}`,
@@ -90,12 +90,14 @@ watch(dataToRenderStore, (newValue) => {
         <input class="input" id="filterValue" v-model="ToFilterValue" name="filterValue" type="text"
           placeholder="input value for condition" />
       </div>
+      <button type="submit" class='flex-auto bg-fuchsia-200'>Submit or press 'Enter'</button>
     </form>
     <!--  -->
     <div class="mb-8 max-w-full overflow-x-auto">
       <div v-if="isLoading">
         <p class="font-bold text-xl py-12 text-blue-800">..loading</p>
       </div>
+
       <table v-if="!isLoading" class="w-full max-w-full">
         <thead>
           <tr>
@@ -117,6 +119,9 @@ watch(dataToRenderStore, (newValue) => {
             <td v-for="(col, i) in tableCells" :key="i" :class="[sortedColumn === col ? 'active' : '']">
               {{ item[col] }}
             </td>
+          </tr>
+          <tr v-if="!dataToRenderStore.length" class="text-center">
+            <td :colspan="tableCells?.length">Empty data</td>
           </tr>
         </tbody>
       </table>
