@@ -250,6 +250,8 @@ export default {
   --text-color-grey: #c4c4c4;
 
   display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 16px;
   --btn-icon-gap: 5px;
 }

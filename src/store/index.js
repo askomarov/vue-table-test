@@ -1,17 +1,25 @@
 import { createStore } from "vuex";
-import data from "../assets/data.js";
+// import data from "../assets/data.js";
+const URL = "https://my.api.mockaroo.com/table_data.json?key=531028c0";
 
 export default createStore({
   state: {
-    data,
+    data: [],
     currentPage: 1,
     totalPages: 1,
     dataOnPage: 5,
-    dataToRender: [...data],
+    dataToRender: [],
     isAscending: true,
     sortedColumn: "count",
+    isLoading: false,
+    serverError: null,
   },
   getters: {
+    getTableHeaders(state) {
+      if (state.data.length) {
+        return Object.keys(state.data[0]);
+      }
+    },
     getSortedColumnName(state) {
       return state.sortedColumn;
     },
@@ -23,9 +31,6 @@ export default createStore({
         return (state.currentPage = 1);
       }
       return state.currentPage;
-    },
-    getData(state) {
-      return state.data;
     },
     getTotalPages(state) {
       if (state.dataToRender.length <= state.dataOnPage) {
@@ -41,6 +46,7 @@ export default createStore({
       let to = state.currentPage * state.dataOnPage;
       return state.dataToRender.slice(from, to);
     },
+    getIsLoading: (state) => state.isLoading,
   },
   mutations: {
     ["filterData"](state, payload) {
@@ -80,6 +86,16 @@ export default createStore({
         return 0;
       });
     },
+    ["setLoading"](state, value) {
+      state.isLoading = value;
+    },
+    ["setData"](state, payload) {
+      state.data = payload;
+      state.dataToRender = payload;
+    },
+    ["setServerError"](state, payload) {
+      state.serverError = payload;
+    },
   },
   actions: {
     filterData({ commit }, payload) {
@@ -90,6 +106,18 @@ export default createStore({
     },
     sortTableColumn({ commit }, payload) {
       commit("sortTableColumn", payload);
+    },
+    async fetchData({ commit }) {
+      try {
+        commit("setLoading", true);
+        const response = await fetch(URL).then((res) => res.json());
+        commit("setData", response);
+      } catch (error) {
+        commit("setServerError", error);
+        throw error;
+      } finally {
+        commit("setLoading", false);
+      }
     },
   },
 });
